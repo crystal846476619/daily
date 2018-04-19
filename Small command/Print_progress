@@ -10,4 +10,4 @@ do
     sleep 0.01
     str+='#'
 done
-echo -e "\e"
+echo ""
