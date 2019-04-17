@@ -1,0 +1,4 @@
+#使用ss命令获取当前链接数
+
+ss -nt |awk  '/^ESTAB/{++a[$1]}END{for (n in a) printf n,a[$1]}'
+

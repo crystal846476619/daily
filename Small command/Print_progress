@@ -1,0 +1,13 @@
+#在脚本中执行的时候打印执行进度
+
+num=1
+str='#'
+for i in $(seq 100)  #循环次数
+do
+    let index=num%4
+    printf "[%-100s %d%% %c]\r" "$str" "$num" "${pro[$index]}"
+    let num++
+    sleep 0.01
+    str+='#'
+done
+echo ""
