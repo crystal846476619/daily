@@ -1,0 +1,57 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/http"
+	"time"
+)
+
+type Data struct {
+	MSGTYPE string `json:"msgtype"`
+	TEXT    TEXT   `json:"text"`
+}
+type TEXT struct {
+	CONTENT string `json:"content"`
+}
+
+func SendMsg(content string, key string) string {
+	var s Data
+	s.MSGTYPE = "text"
+	s.TEXT.CONTENT = content
+
+	b, err := json.Marshal(s)
+	if err != nil {
+		fmt.Println("json err:", err)
+	}
+	fmt.Println(string(b))
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Post(key, "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	result, _ := ioutil.ReadAll(resp.Body)
+	return string(result)
+}
+
+func main() {
+	key := "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key="
+	handle := func(writer http.ResponseWriter, request *http.Request) {
+		b, e := ioutil.ReadAll(request.Body)
+		if e != nil {
+			fmt.Print(e)
+		} else {
+			fmt.Print(string(b))
+			SendMsg(string(b), key)
+		}
+		io.WriteString(writer, "OK\n")
+	}
+
+	http.HandleFunc("/alter", handle)
+	http.ListenAndServe(":8000", nil)
+}
