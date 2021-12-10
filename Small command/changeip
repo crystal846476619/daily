@@ -1,0 +1,22 @@
+#!/bin/bash
+#set -x
+ip_info=$(grep -i ipaddr /etc/sysconfig/network-scripts/ifcfg-* |grep -Ev  "#|127.0"  )
+cu_ip=$(echo $ip_info|awk -F '=' '{print $2}' |tr -d '"')
+cu_hw=$(echo $ip_info|awk -F ':' '{print $1}')
+echo "current ip is $cu_ip"
+echo "current interface file is $cu_hw"
+read -p "输入想要设置的ip: " next_ip
+read -p "确认修改网卡ip为$next_ip[Y/y]: " rev
+
+case $rev in
+"Y")
+sed -i "/IPADDR/ s/IPADDR=.*/IPADDR=\"${next_ip}\"/g" $cu_hw && systemctl restart network
+;;
+"y")
+sed -i "/IPADDR/ s/IPADDR=.*/IPADDR=\"${next_ip}\"/g" $cu_hw && systemctl restart network
+;;
+*)
+exit 1
+;;
+esac
+
