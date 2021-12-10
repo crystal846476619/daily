@@ -1,0 +1,14 @@
+#!/bin/bash
+#set -x 
+function list {
+  for file in `ls $1`;
+    do
+      if [[ -d $1/$file ]];then
+        list $1/$file
+      else
+        echo $1/$file
+      fi 
+     done
+}
+
+list $1
