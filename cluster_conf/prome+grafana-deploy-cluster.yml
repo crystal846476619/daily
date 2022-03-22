@@ -1,0 +1,67 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: monitor-app
+  name: monitor-deployment
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: monitor-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: monitor-app
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana-oss
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: grafana1
+          mountPath: /var/lib/grafana
+          readOnly: false
+      - name: prometheus
+        image: prom/prometheus
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: pvc-prome-0001
+          mountPath: /prometheus
+          readOnly: false
+
+      volumes:
+      - name: pvc-prome-0001
+        persistentVolumeClaim:
+          claimName: pvc-prome-0001
+      - name: grafana1
+        persistentVolumeClaim:
+          claimName: pvc-grafana-0001
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: monitor-app
+  name: monitor-spec
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+    nodePort: 30300
+  - name: https
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+    nodePort: 30090
+  selector:
+    app: monitor-app
