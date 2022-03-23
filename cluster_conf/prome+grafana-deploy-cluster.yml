@@ -38,10 +38,10 @@ spec:
       volumes:
       - name: pvc-prome-0001
         persistentVolumeClaim:
-          claimName: pvc-prome-0001
+          claimName: prome-pvc
       - name: grafana1
         persistentVolumeClaim:
-          claimName: pvc-grafana-0001
+          claimName: grafana-pvc
 ---
 kind: Service
 apiVersion: v1
