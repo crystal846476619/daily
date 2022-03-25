@@ -1,0 +1,143 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: monitor
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: monitor-grafana
+  name: monitor-grafana
+  namespace: monitor
+spec:
+  selector:
+    matchLabels:
+      app: monitor-grafana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: monitor-grafana
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana-oss
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: grafana1
+          mountPath: /var/lib/grafana
+          readOnly: false
+      volumes:
+      - name: grafana1
+        persistentVolumeClaim:
+          claimName: grafana-pvc
+
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: monitor-prome
+  name: monitor-prome
+  namespace: monitor
+spec:
+  selector:
+    matchLabels:
+      app: monitor-prome
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: monitor-prome
+    spec:
+      containers:
+      - name: prometheus
+        image: prom/prometheus
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: pvc-prome-0001
+          mountPath: /prometheus
+          readOnly: false
+        - name: config1
+          mountPath: /etc/prometheus/
+          readOnly: true
+
+      volumes:
+      - name: pvc-prome-0001
+        persistentVolumeClaim:
+          claimName: prome-pvc
+      - name: config1
+        configMap:
+            name: prome
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: monitor-grafana
+  name: monitor-grafana
+  namespace: monitor
+spec:
+  ports:
+  - name: http
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: monitor-grafana
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    app: monitor-prome
+  name: monitor-prome
+  namespace: monitor
+spec:
+  ports:
+  - name: http
+    port: 9090
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: monitor-prome
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prome
+  namespace: monitor
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      evaluation_interval: 15s
+    alerting:
+      alertmanagers:
+      - follow_redirects: true
+        scheme: http
+        timeout: 10s
+        api_version: v2
+        static_configs:
+        - targets: []
+    scrape_configs:
+    - job_name: prometheus
+      honor_timestamps: true
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      metrics_path: /metrics
+      scheme: http
+      follow_redirects: true
+      static_configs:
+      - targets:
+        - localhost:9090
