@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-grafana
+  namespace: monitor
+spec:
+  rules:
+  - host: grafana.orange.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: monitor-grafana
+          servicePort: 3000
+
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-prome
+  namespace: monitor
+spec:
+  rules:
+  - host: prometheus.orange.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: monitor-prome
+          servicePort: 9090
