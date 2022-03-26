@@ -11,6 +11,7 @@ rules:
   - pods
   verbs: ["get", "list", "watch"]
 - apiGroups:
+#prometheus targets apiserer error : server returned HTTP status 403 Forbidden
   - extensions
   resources:
   - ingresses
