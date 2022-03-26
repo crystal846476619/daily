@@ -1,25 +1,20 @@
-kind: Namespace
-apiVersion: v1
-metadata:
-  name: monitor
-
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   labels:
-    app: monitor-grafana
-  name: monitor-grafana
-  namespace: monitor
+    app: grafana
+  name: grafana
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
-      app: monitor-grafana
+      app: grafana
   replicas: 1
   template:
     metadata:
       labels:
-        app: monitor-grafana
+        app: grafana
     spec:
       containers:
       - name: grafana
@@ -33,27 +28,29 @@ spec:
           readOnly: false
       volumes:
       - name: grafana1
-        persistentVolumeClaim:
-          claimName: grafana-pvc
+        nfs:
+          server: 192.168.118.134
+          path: /data/grafana
 
 ---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   labels:
-    app: monitor-prome
-  name: monitor-prome
-  namespace: monitor
+    app: prometheus
+  name: prometheus
+  namespace: kube-system
 spec:
   selector:
     matchLabels:
-      app: monitor-prome
+      app: prometheus
   replicas: 1
   template:
     metadata:
       labels:
-        app: monitor-prome
+        app: prometheus
     spec:
+      serviceAccountName: prometheus
       containers:
       - name: prometheus
         image: prom/prometheus
@@ -70,20 +67,21 @@ spec:
 
       volumes:
       - name: pvc-prome-0001
-        persistentVolumeClaim:
-          claimName: prome-pvc
+        nfs:
+          server: 192.168.118.134
+          path: /data/prometheus
       - name: config1
         configMap:
-            name: prome
+            name: prometheus-config
 
 ---
 kind: Service
 apiVersion: v1
 metadata:
   labels:
-    app: monitor-grafana
-  name: monitor-grafana
-  namespace: monitor
+    app: grafana
+  name: grafana
+  namespace: kube-system
 spec:
   ports:
   - name: http
@@ -91,16 +89,16 @@ spec:
     protocol: TCP
     targetPort: 3000
   selector:
-    app: monitor-grafana
+    app: grafana
 
 ---
 kind: Service
 apiVersion: v1
 metadata:
   labels:
-    app: monitor-prome
-  name: monitor-prome
-  namespace: monitor
+    app: prometheus
+  name: prometheus
+  namespace: kube-system
 spec:
   ports:
   - name: http
@@ -108,36 +106,4 @@ spec:
     protocol: TCP
     targetPort: 9090
   selector:
-    app: monitor-prome
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prome
-  namespace: monitor
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval: 15s
-      scrape_timeout: 10s
-      evaluation_interval: 15s
-    alerting:
-      alertmanagers:
-      - follow_redirects: true
-        scheme: http
-        timeout: 10s
-        api_version: v2
-        static_configs:
-        - targets: []
-    scrape_configs:
-    - job_name: prometheus
-      honor_timestamps: true
-      scrape_interval: 15s
-      scrape_timeout: 10s
-      metrics_path: /metrics
-      scheme: http
-      follow_redirects: true
-      static_configs:
-      - targets:
-        - localhost:9090
+    app: prometheus
