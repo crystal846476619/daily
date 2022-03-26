@@ -1,84 +1,74 @@
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: local-storage
+  name: nfs-storage
 provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
-
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:  
   name: grafana-pv
+  labels:
+    pv: grafana
 spec:
   accessModes:
     - ReadWriteMany
-    - ReadWriteOnce
-    - ReadOnlyMany
   capacity: 
     storage: 50Mi
   persistentVolumeReclaimPolicy: Delete
-  storageClassName: local-storage
-  local:
-    path: /data/pv/grafana
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - master-1
-          
+  storageClassName: nfs-storage
+  nfs:
+    path: /data/grafana
+    server: 192.168.118.134
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: grafana-pvc
-  namespace: monitor
+  namespace: kube-system
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 50Mi
-  storageClassName: local-storage
+  storageClassName: nfs-storage
+  selector:
+    matchLabels:
+      pv: grafana
   
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:  
   name: prome-pv
+  labels:
+    pv: grafana
 spec:
   accessModes:
     - ReadWriteMany
-    - ReadWriteOnce
-    - ReadOnlyMany
   capacity: 
     storage: 50Mi
   persistentVolumeReclaimPolicy: Delete
-  storageClassName: local-storage
-  local:
-    path: /data/pv/prome
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: kubernetes.io/hostname
-          operator: In
-          values:
-          - master-1
+  storageClassName: nfs-storage
+  nfs:
+    path: /data/prometheus
+    server: 192.168.118.134
 
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
   name: prome-pvc
-  namespace: monitor
+  namespace: kube-system
 spec:
   accessModes:
   - ReadWriteOnce
   resources:
     requests:
       storage: 50Mi
-  storageClassName: local-storage
+  storageClassName: nfs-storage
+  selector:
+    matchLabels:
+      pv: prome
