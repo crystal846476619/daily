@@ -1,3 +1,4 @@
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: prometheus
@@ -11,14 +12,14 @@ rules:
   - pods
   verbs: ["get", "list", "watch"]
 - apiGroups:
-#prometheus targets apiserer error : server returned HTTP status 403 Forbidden
+  - networking.k8s.io
   - extensions
   resources:
   - ingresses
   - ingressclasses
-  verbs: ["get", "list", "watch"]
+  verbs: ["get","list","watch"]
 - nonResourceURLs: ["/metrics"]
-  verbs: ["list"]
+  verbs: ["get"]
 ---
 apiVersion: v1
 kind: ServiceAccount
