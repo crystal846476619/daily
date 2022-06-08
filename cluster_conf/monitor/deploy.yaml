@@ -27,10 +27,12 @@ spec:
           mountPath: /var/lib/grafana
           readOnly: false
       volumes:
-      - name: grafana1
-        nfs:
-          server: 192.168.118.134
-          path: /data/grafana
+      - name: grafana1        
+        persistentVolumeClaim:
+          claimName: grafana 
+
+        
+       
 
 ---
 kind: Deployment
@@ -55,6 +57,11 @@ spec:
       - name: prometheus
         image: prom/prometheus
         imagePullPolicy: Always
+        command:
+        - "/bin/prometheus"
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--web.enable-lifecycle"
         ports:
         - containerPort: 9090
         volumeMounts:
@@ -67,9 +74,8 @@ spec:
 
       volumes:
       - name: pvc-prome-0001
-        nfs:
-          server: 192.168.118.134
-          path: /data/prometheus
+        persistentVolumeClaim:
+          claimName: prome
       - name: config1
         configMap:
             name: prometheus-config
