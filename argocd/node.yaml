@@ -13,6 +13,6 @@ spec:
     spec:
       containers:
       - name: myapp
-        image: registry.cn-shanghai.aliyuncs.com/public-namespace/myapp:v1
+        image: registry.cn-shanghai.aliyuncs.com/public-namespace/myapp:v2
         ports:
         - containerPort: 80
